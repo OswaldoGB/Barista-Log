@@ -1,0 +1,5 @@
+{
+  "name": "BaristaLog - Diario de Café",
+  "description": "Un diario de preparación y cata completo y mobile-first para baristas en casa. Registra granos, recetas, técnicas y notas de cata con diagnóstico automático de extracción.",
+  "requestFramePermissions": []
+}
