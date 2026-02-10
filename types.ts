@@ -1,7 +1,7 @@
 export type RoastLevel = 'Claro' | 'Medio' | 'Medio-Oscuro' | 'Oscuro';
 export type ProcessType = 'Lavado' | 'Natural' | 'Honey' | 'Experimental' | 'Anaeróbico' | 'Maceración Carbónica';
 export type BrewMethod = 'V60' | 'Origami' | 'Kalita Wave' | 'Aeropress' | 'Prensa Francesa' | 'Espresso' | 'Chemex' | 'Switch' | 'Otro';
-export type ExtractionDiagnosis = 'Sub-extraído' | 'Balanceado' | 'Sobre-extraído';
+export type ExtractionDiagnosis = 'Sub-extraído' | 'Balanceado' | 'Sobre-extraído' | 'Excelente';
 
 export interface PourStep {
   volume: number;
@@ -77,7 +77,7 @@ export interface BrewRecipe {
 }
 
 export interface Diagnosis {
-  status: 'Sub-extraído' | 'Balanceado' | 'Sobre-extraído' | 'Excelente';
+  status: ExtractionDiagnosis;
   suggestions: string[];
 }
 

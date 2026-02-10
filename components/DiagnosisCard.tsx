@@ -1,54 +1,56 @@
 import React from 'react';
 import { SensoryResult, Diagnosis, BrewConfig } from '../types';
 import { CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { TRANSLATIONS, LABELS } from '../constants';
 
 interface Props {
   result: SensoryResult;
   config: BrewConfig;
+  lang: 'es' | 'en';
 }
 
-export const generateDiagnosis = (result: SensoryResult, config: BrewConfig): Diagnosis => {
+export const generateDiagnosis = (result: SensoryResult, config: BrewConfig, lang: 'es' | 'en'): Diagnosis => {
+  const t = TRANSLATIONS[lang];
   const suggestions: string[] = [];
   let status: Diagnosis['status'] = 'Balanceado';
 
-  // Heurística básica para Filtrados
-  // Alta Acidez + Baja Dulzura = Ácido/Sub-extraído
+  // Heurística básica
   if (result.acidity >= 7 && result.sweetness <= 4) {
     status = 'Sub-extraído';
-    suggestions.push('Moler más fino (aumentar superficie de contacto).');
-    suggestions.push('Subir la temperatura del agua.');
-    suggestions.push('Usar más agua (aumentar ratio).');
-    suggestions.push('Agitar más durante el bloom.');
+    suggestions.push(t.sugg_fine);
+    suggestions.push(t.sugg_tempUp);
+    suggestions.push(t.sugg_moreWater);
+    suggestions.push(t.sugg_agitate);
   } 
-  // Alto Amargor + Retrogusto Seco = Astringente/Sobre-extraído
   else if (result.bitterness >= 7 || (result.balance <= 4 && result.bitterness > result.acidity)) {
     status = 'Sobre-extraído';
-    suggestions.push('Moler más grueso.');
-    suggestions.push('Bajar la temperatura del agua.');
-    suggestions.push('Usar menos agua (disminuir ratio).');
-    suggestions.push('Verter más suavemente para reducir turbulencia.');
+    suggestions.push(t.sugg_coarse);
+    suggestions.push(t.sugg_tempDown);
+    suggestions.push(t.sugg_lessWater);
+    suggestions.push(t.sugg_gentle);
   }
-  // Rango ideal
   else if (result.overallScore >= 8) {
     status = 'Excelente';
-    suggestions.push('¡Gran extracción! Intenta replicar la receta exactamente para confirmar consistencia.');
+    suggestions.push(t.sugg_excellent);
   }
 
   return { status, suggestions };
 };
 
-const DiagnosisCard: React.FC<Props> = ({ result, config }) => {
-  const diagnosis = generateDiagnosis(result, config);
+const DiagnosisCard: React.FC<Props> = ({ result, config, lang }) => {
+  const t = TRANSLATIONS[lang];
+  const diagnosis = generateDiagnosis(result, config, lang);
+  const displayStatus = LABELS.diagnosis[diagnosis.status][lang];
   
   if (diagnosis.status === 'Balanceado' || diagnosis.status === 'Excelente') {
     return (
       <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
         <div className="flex items-center gap-2 mb-2">
           <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-          <h3 className="font-semibold text-green-800 dark:text-green-200">¡Muy buen balance!</h3>
+          <h3 className="font-semibold text-green-800 dark:text-green-200">{t.diagnosisGood}</h3>
         </div>
         <p className="text-sm text-green-700 dark:text-green-300">
-          Tus puntajes sensoriales indican una taza bien extraída.
+          {t.diagnosisGoodDesc}
         </p>
       </div>
     );
@@ -61,7 +63,7 @@ const DiagnosisCard: React.FC<Props> = ({ result, config }) => {
       <div className="flex items-center gap-2 mb-3">
         {isUnder ? <TrendingDown className="w-5 h-5 text-yellow-600" /> : <TrendingUp className="w-5 h-5 text-red-600" />}
         <h3 className={`font-semibold ${isUnder ? 'text-yellow-800 dark:text-yellow-200' : 'text-red-800 dark:text-red-200'}`}>
-          Detectado: {diagnosis.status}
+          {t.detected}: {displayStatus}
         </h3>
       </div>
       

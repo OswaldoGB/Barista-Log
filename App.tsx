@@ -4,7 +4,8 @@ import BeanDetail from './components/BeanDetail';
 import BeanForm from './components/BeanForm';
 import BrewForm from './components/BrewForm';
 import { CoffeeBean, BrewRecipe } from './types';
-import { Coffee } from 'lucide-react';
+import { Coffee, Globe, Moon, Sun } from 'lucide-react';
+import { TRANSLATIONS } from './constants';
 
 type ViewState = 'beanList' | 'addBean' | 'editBean' | 'beanDetail' | 'addRecipe' | 'editRecipe';
 
@@ -19,6 +20,8 @@ const App: React.FC = () => {
     }
   });
 
+  const [lang, setLang] = useState<'es' | 'en'>('es');
+
   // Navigation State
   const [view, setView] = useState<ViewState>('beanList');
   const [activeBeanId, setActiveBeanId] = useState<string | null>(null);
@@ -32,6 +35,7 @@ const App: React.FC = () => {
   // Derived State
   const activeBean = beans.find(b => b.id === activeBeanId);
   const activeRecipe = activeBean?.recipes.find(r => r.id === activeRecipeId);
+  const t = TRANSLATIONS[lang];
 
   // --- Actions ---
 
@@ -66,7 +70,7 @@ const App: React.FC = () => {
         updatedRecipes = [...bean.recipes];
         updatedRecipes[existingRecipeIndex] = recipe;
       } else {
-        updatedRecipes = [recipe, ...bean.recipes];
+        updatedRecipes = [recipe, ...bean.recipes]; // Add new recipe to top
       }
 
       return { ...bean, recipes: updatedRecipes };
@@ -78,7 +82,7 @@ const App: React.FC = () => {
 
   const handleDeleteRecipe = (recipeId: string) => {
     if (!activeBeanId) return;
-    if (!confirm('¿Estás seguro de que quieres eliminar esta receta?')) return;
+    if (!confirm(t.confirmDelete)) return;
     
     setBeans(prev => prev.map(bean => {
       if (bean.id !== activeBeanId) return bean;
@@ -95,13 +99,13 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (view) {
       case 'beanList':
-        return <BeanList beans={beans} onSelectBean={handleSelectBean} onAddBean={() => setView('addBean')} />;
+        return <BeanList beans={beans} onSelectBean={handleSelectBean} onAddBean={() => setView('addBean')} lang={lang} />;
       
       case 'addBean':
-        return <BeanForm onSave={handleSaveBean} onCancel={() => setView('beanList')} />;
+        return <BeanForm onSave={handleSaveBean} onCancel={() => setView('beanList')} lang={lang} />;
 
       case 'editBean':
-        return activeBean ? <BeanForm initialData={activeBean} onSave={handleSaveBean} onCancel={() => setView('beanDetail')} /> : null;
+        return activeBean ? <BeanForm initialData={activeBean} onSave={handleSaveBean} onCancel={() => setView('beanDetail')} lang={lang} /> : null;
 
       case 'beanDetail':
         return activeBean ? (
@@ -112,14 +116,15 @@ const App: React.FC = () => {
             onAddRecipe={() => { setActiveRecipeId(null); setView('addRecipe'); }}
             onSelectRecipe={handleSelectRecipe}
             onDeleteRecipe={handleDeleteRecipe}
+            lang={lang}
           />
         ) : null;
 
       case 'addRecipe':
-        return <BrewForm onSave={handleSaveRecipe} onCancel={() => setView('beanDetail')} />;
+        return <BrewForm onSave={handleSaveRecipe} onCancel={() => setView('beanDetail')} lang={lang} />;
 
       case 'editRecipe':
-        return activeRecipe ? <BrewForm initialData={activeRecipe} onSave={handleSaveRecipe} onCancel={() => setView('beanDetail')} /> : null;
+        return activeRecipe ? <BrewForm initialData={activeRecipe} onSave={handleSaveRecipe} onCancel={() => setView('beanDetail')} lang={lang} /> : null;
         
       default:
         return <div>Error: Vista Desconocida</div>;
@@ -130,18 +135,34 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-[#fdf8f6] dark:bg-[#1c1917] text-stone-900 dark:text-stone-100 font-sans transition-colors duration-200">
       <nav className="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 sticky top-0 z-20">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setView('beanList'); setActiveBeanId(null); }}>
-            <div className="bg-stone-900 dark:bg-white text-white dark:text-stone-900 p-1.5 rounded-lg">
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => { setView('beanList'); setActiveBeanId(null); }}>
+            <div className="bg-stone-900 dark:bg-white text-white dark:text-stone-900 p-1.5 rounded-lg group-hover:scale-105 transition-transform">
               <Coffee className="w-5 h-5" />
             </div>
-            <span className="font-bold text-lg tracking-tight">BaristaLog</span>
+            <span className="font-bold text-lg tracking-tight">{t.appTitle}</span>
           </div>
-          <button 
-            onClick={() => document.documentElement.classList.toggle('dark')}
-            className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition-colors"
-          >
-            🌙
-          </button>
+          
+          <div className="flex items-center gap-3">
+            {/* Language Toggle Button */}
+            <button
+              onClick={() => setLang(prev => prev === 'es' ? 'en' : 'es')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors text-xs font-bold active:scale-95"
+              aria-label="Switch Language"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              {lang.toUpperCase()}
+            </button>
+
+            {/* Dark Mode Toggle */}
+            <button 
+              onClick={() => document.documentElement.classList.toggle('dark')}
+              className="p-2 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors active:scale-95"
+              aria-label="Toggle Dark Mode"
+            >
+              <Moon className="w-5 h-5 block dark:hidden" />
+              <Sun className="w-5 h-5 hidden dark:block" />
+            </button>
+          </div>
         </div>
       </nav>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CoffeeBean, BrewRecipe } from '../types';
 import { ArrowLeft, Plus, Droplet, Thermometer, Timer, Edit, Trash2, TrendingUp } from 'lucide-react';
+import { TRANSLATIONS, LABELS } from '../constants';
 
 interface Props {
   bean: CoffeeBean;
@@ -9,9 +10,13 @@ interface Props {
   onAddRecipe: () => void;
   onSelectRecipe: (recipe: BrewRecipe) => void;
   onDeleteRecipe: (recipeId: string) => void;
+  lang: 'es' | 'en';
 }
 
-const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, onSelectRecipe, onDeleteRecipe }) => {
+const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, onSelectRecipe, onDeleteRecipe, lang }) => {
+  const t = TRANSLATIONS[lang];
+  const dateLocale = lang === 'es' ? 'es-ES' : 'en-US';
+
   // Sort recipes by date descending
   const recipes = [...bean.recipes].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -25,7 +30,7 @@ const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, on
       {/* Header / Nav */}
       <div className="flex items-center justify-between mb-6 sticky top-0 bg-[#fdf8f6] dark:bg-[#1c1917] z-10 py-4 transition-colors">
         <button onClick={onBack} className="flex items-center text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors font-medium">
-          <ArrowLeft className="w-5 h-5 mr-1" /> Mis Cafés
+          <ArrowLeft className="w-5 h-5 mr-1" /> {t.back}
         </button>
         <button onClick={onEditBean} className="p-2 text-stone-400 hover:text-amber-600 transition-colors">
           <Edit className="w-5 h-5" />
@@ -53,19 +58,21 @@ const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, on
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-stone-100 dark:border-stone-800">
              <div>
-               <span className="label">Fecha Tueste</span>
-               <p className="font-mono text-stone-800 dark:text-stone-200 text-sm">{new Date(bean.roastDate).toLocaleDateString()}</p>
+               <span className="label">{t.roastDate}</span>
+               <p className="font-mono text-stone-800 dark:text-stone-200 text-sm">{new Date(bean.roastDate).toLocaleDateString(dateLocale)}</p>
              </div>
              <div>
-               <span className="label">Nivel</span>
-               <p className="font-medium text-stone-800 dark:text-stone-200 text-sm">{bean.roastLevel}</p>
+               <span className="label">{t.roastLevel}</span>
+               <p className="font-medium text-stone-800 dark:text-stone-200 text-sm">
+                 {LABELS.roast[bean.roastLevel as keyof typeof LABELS.roast]?.[lang] || bean.roastLevel}
+               </p>
              </div>
              <div>
-               <span className="label">Recetas</span>
+               <span className="label">{t.recipes}</span>
                <p className="font-medium text-stone-800 dark:text-stone-200 text-sm">{recipes.length}</p>
              </div>
              <div>
-               <span className="label">Puntaje</span>
+               <span className="label">{t.score}</span>
                <p className="font-bold text-amber-600 text-lg">{avgScore}</p>
              </div>
           </div>
@@ -74,15 +81,15 @@ const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, on
 
       {/* Recipes List */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-stone-800 dark:text-stone-200">Bitácora</h2>
+        <h2 className="text-xl font-bold text-stone-800 dark:text-stone-200">{t.logbook}</h2>
         <button onClick={onAddRecipe} className="flex items-center gap-2 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 px-4 py-2 rounded-xl text-sm font-bold hover:bg-stone-800 dark:hover:bg-white transition-colors shadow-md active:scale-95">
-          <Plus className="w-4 h-4" /> Nueva Receta
+          <Plus className="w-4 h-4" /> {t.newRecipe}
         </button>
       </div>
 
       {recipes.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-stone-50/50 dark:bg-stone-900/50">
-          <p className="text-stone-500 font-medium">Aún no hay recetas. ¡Prepara tu primera taza!</p>
+          <p className="text-stone-500 font-medium">{t.noRecipes}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -97,8 +104,10 @@ const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, on
                      {recipe.result.overallScore}
                    </div>
                    <div>
-                     <h3 className="font-bold text-stone-800 dark:text-stone-100">{recipe.config.method}</h3>
-                     <p className="text-xs text-stone-500 font-medium">{new Date(recipe.date).toLocaleDateString()} · {new Date(recipe.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                     <h3 className="font-bold text-stone-800 dark:text-stone-100">
+                       {LABELS.method[recipe.config.method as keyof typeof LABELS.method]?.[lang] || recipe.config.method}
+                     </h3>
+                     <p className="text-xs text-stone-500 font-medium">{new Date(recipe.date).toLocaleDateString(dateLocale)} · {new Date(recipe.date).toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'})}</p>
                    </div>
                  </div>
                  <button 
@@ -114,7 +123,7 @@ const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, on
                 <div className="stat-pill"><Droplet className="w-3 h-3" /> 1:{(recipe.config.waterAmount / recipe.config.dose).toFixed(1)}</div>
                 <div className="stat-pill"><Thermometer className="w-3 h-3" /> {recipe.config.temperature}°C</div>
                 <div className="stat-pill"><Timer className="w-3 h-3" /> {recipe.config.totalTime}</div>
-                <div className="stat-pill font-mono text-[10px] tracking-tighter">Molienda: {recipe.config.grinderSetting}</div>
+                <div className="stat-pill font-mono text-[10px] tracking-tighter">{t.grind}: {recipe.config.grinderSetting}</div>
               </div>
 
               {/* Diagnosis & Next Steps */}
@@ -124,13 +133,13 @@ const BeanDetail: React.FC<Props> = ({ bean, onBack, onEditBean, onAddRecipe, on
                       recipe.learning.diagnosis === 'Balanceado' || recipe.learning.diagnosis === 'Excelente' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                       recipe.learning.diagnosis === 'Sub-extraído' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                     }`}>
-                      {recipe.learning.diagnosis}
+                      {LABELS.diagnosis[recipe.learning.diagnosis as keyof typeof LABELS.diagnosis]?.[lang] || recipe.learning.diagnosis}
                     </span>
                  </div>
                  {recipe.learning.changesForNextTime && (
                    <div className="flex items-start gap-2 text-sm text-stone-600 dark:text-stone-400 bg-stone-50 dark:bg-stone-800/50 p-2.5 rounded-lg border border-stone-100 dark:border-stone-800">
                      <TrendingUp className="w-4 h-4 mt-0.5 text-amber-600 flex-shrink-0" />
-                     <p className="leading-snug"><span className="font-semibold text-stone-700 dark:text-stone-300">Siguiente:</span> {recipe.learning.changesForNextTime}</p>
+                     <p className="leading-snug"><span className="font-semibold text-stone-700 dark:text-stone-300">{t.next}:</span> {recipe.learning.changesForNextTime}</p>
                    </div>
                  )}
               </div>

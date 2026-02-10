@@ -1,34 +1,39 @@
 import React from 'react';
 import { CoffeeBean } from '../types';
 import { Plus, Archive, Coffee } from 'lucide-react';
+import { TRANSLATIONS } from '../constants';
 
 interface Props {
   beans: CoffeeBean[];
   onSelectBean: (bean: CoffeeBean) => void;
   onAddBean: () => void;
+  lang: 'es' | 'en';
 }
 
-const BeanList: React.FC<Props> = ({ beans, onSelectBean, onAddBean }) => {
+const BeanList: React.FC<Props> = ({ beans, onSelectBean, onAddBean, lang }) => {
+  const t = TRANSLATIONS[lang];
+  const dateLocale = lang === 'es' ? 'es-ES' : 'en-US';
+
   return (
     <div className="pb-24 max-w-4xl mx-auto w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
-           <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100">Mis Cafés</h1>
-           <p className="text-stone-500 dark:text-stone-400 mt-1">Gestiona tu stock y calibra tus recetas.</p>
+           <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100">{t.myCoffees}</h1>
+           <p className="text-stone-500 dark:text-stone-400 mt-1">{t.manageStock}</p>
         </div>
         <button 
           onClick={onAddBean}
           className="w-full sm:w-auto bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 px-5 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-stone-800 dark:hover:bg-white transition-all flex items-center justify-center gap-2 active:scale-95"
         >
-          <Plus className="w-4 h-4" /> Agregar Café
+          <Plus className="w-4 h-4" /> {t.addCoffee}
         </button>
       </div>
 
       {beans.length === 0 ? (
         <div className="text-center py-20 px-4 bg-white dark:bg-stone-900 rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-800">
           <Coffee className="w-16 h-16 text-stone-200 dark:text-stone-700 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-stone-500 dark:text-stone-400">Aún no tienes cafés</h3>
-          <p className="text-stone-400 text-sm mt-2">Agrega tu primera bolsa de café para comenzar.</p>
+          <h3 className="text-lg font-medium text-stone-500 dark:text-stone-400">{t.noCoffees}</h3>
+          <p className="text-stone-400 text-sm mt-2">{t.addFirst}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -53,10 +58,10 @@ const BeanList: React.FC<Props> = ({ beans, onSelectBean, onAddBean }) => {
 
                   <div className="flex items-center gap-4 text-xs font-medium text-stone-400 dark:text-stone-500 pt-4 border-t border-stone-100 dark:border-stone-800">
                     <span className="bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-2 py-1 rounded">
-                      {recipeCount} {recipeCount === 1 ? 'Receta' : 'Recetas'}
+                      {recipeCount} {recipeCount === 1 ? t.recipe : t.recipes}
                     </span>
                     {lastBrew && (
-                      <span className="truncate">Última: {lastBrew.toLocaleDateString()}</span>
+                      <span className="truncate">{t.last}: {lastBrew.toLocaleDateString(dateLocale)}</span>
                     )}
                   </div>
                 </div>

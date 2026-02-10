@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { BrewRecipe, BrewConfig, Technique, SensoryResult, LearningLog } from '../types';
-import { EMPTY_RECIPE, METHODS } from '../constants';
+import { EMPTY_RECIPE, METHODS, TRANSLATIONS, LABELS } from '../constants';
 import { ChevronDown, ChevronUp, Save, Droplets, Sliders, Activity, BrainCircuit, ArrowLeft } from 'lucide-react';
+import DiagnosisCard from './DiagnosisCard';
 
 interface Props {
   initialData?: BrewRecipe;
   onSave: (recipe: BrewRecipe) => void;
   onCancel: () => void;
+  lang: 'es' | 'en';
 }
 
 // Reusable Section Component
@@ -38,8 +40,10 @@ const SensorySlider: React.FC<{ label: string; value: number; onChange: (val: nu
   </div>
 );
 
-const BrewForm: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
+const BrewForm: React.FC<Props> = ({ initialData, onSave, onCancel, lang }) => {
   const [formData, setFormData] = useState<BrewRecipe>(initialData || { ...EMPTY_RECIPE, id: crypto.randomUUID(), date: new Date().toISOString() });
+  
+  const t = TRANSLATIONS[lang];
 
   const updateConfig = (field: keyof BrewConfig, value: any) => setFormData(p => ({ ...p, config: { ...p.config, [field]: value } }));
   const updateTechnique = (field: keyof Technique, value: any) => setFormData(p => ({ ...p, technique: { ...p.technique, [field]: value } }));
@@ -53,10 +57,10 @@ const BrewForm: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
     <form className="pb-24 max-w-2xl mx-auto w-full" onSubmit={(e) => { e.preventDefault(); onSave(formData); }}>
       <div className="flex items-center justify-between mb-6 sticky top-0 bg-[#fdf8f6] dark:bg-[#1c1917] z-10 py-4">
         <button type="button" onClick={onCancel} className="flex items-center text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors font-medium">
-          <ArrowLeft className="w-5 h-5 mr-1" /> Volver
+          <ArrowLeft className="w-5 h-5 mr-1" /> {t.back}
         </button>
         <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100">
-          {initialData ? 'Editar Receta' : 'Nueva Receta'}
+          {initialData ? t.editRecipe : t.newRecipe}
         </h2>
         <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white p-2.5 rounded-full shadow-lg active:scale-95 transition-transform">
           <Save className="w-5 h-5" />
@@ -64,97 +68,101 @@ const BrewForm: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
       </div>
 
       {/* 1. Preparation Stats */}
-      <Section title="Preparación" icon={<Sliders className="w-5 h-5" />}>
+      <Section title={t.preparation} icon={<Sliders className="w-5 h-5" />}>
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2 md:col-span-1">
-            <label className="label">Método</label>
+            <label className="label">{t.method}</label>
             <select className="input" value={formData.config.method} onChange={e => updateConfig('method', e.target.value)}>
-              {METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+              {METHODS.map(m => (
+                <option key={m} value={m}>{LABELS.method[m as keyof typeof LABELS.method]?.[lang] || m}</option>
+              ))}
             </select>
           </div>
           <div className="col-span-2 md:col-span-1">
-             <label className="label">Dripper / Dispositivo</label>
-             <input type="text" className="input" placeholder="Ej. V60 02 Plástico" value={formData.config.dripper || ''} onChange={e => updateConfig('dripper', e.target.value)} />
+             <label className="label">{t.device}</label>
+             <input type="text" className="input" placeholder="Ej. V60 02" value={formData.config.dripper || ''} onChange={e => updateConfig('dripper', e.target.value)} />
           </div>
           <div>
-            <label className="label">Dosis (g)</label>
+            <label className="label">{t.dose}</label>
             <input type="number" step="0.1" className="input" value={formData.config.dose} onChange={e => updateConfig('dose', parseFloat(e.target.value))} />
           </div>
           <div>
-            <label className="label">Agua (ml)</label>
+            <label className="label">{t.water}</label>
             <input type="number" className="input" value={formData.config.waterAmount} onChange={e => updateConfig('waterAmount', parseFloat(e.target.value))} />
           </div>
           <div className="col-span-2 bg-stone-100 dark:bg-stone-800 p-3 rounded-xl text-center border border-stone-200 dark:border-stone-700">
-             <span className="text-stone-500 text-xs uppercase tracking-wider font-bold">Ratio Calculado</span>
+             <span className="text-stone-500 text-xs uppercase tracking-wider font-bold">{t.ratioCalc}</span>
              <div className="font-bold text-stone-900 dark:text-stone-100 text-lg">1 : {ratio}</div>
           </div>
           <div>
-            <label className="label">Temp. (°C)</label>
+            <label className="label">{t.temp}</label>
             <input type="number" className="input" value={formData.config.temperature} onChange={e => updateConfig('temperature', parseFloat(e.target.value))} />
           </div>
           <div>
-             <label className="label">Molienda</label>
-             <input type="text" className="input" placeholder="Ej. 2.4 o 20 clics" value={formData.config.grinderSetting} onChange={e => updateConfig('grinderSetting', e.target.value)} />
+             <label className="label">{t.grind}</label>
+             <input type="text" className="input" placeholder="2.4" value={formData.config.grinderSetting} onChange={e => updateConfig('grinderSetting', e.target.value)} />
           </div>
         </div>
       </Section>
 
       {/* 2. Technique */}
-      <Section title="Técnica" icon={<Droplets className="w-5 h-5" />}>
+      <Section title={t.technique} icon={<Droplets className="w-5 h-5" />}>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">Bloom Agua (ml)</label>
+            <label className="label">{t.bloomWater}</label>
             <input type="number" className="input" value={formData.technique.bloomWater} onChange={e => updateTechnique('bloomWater', Number(e.target.value))} />
           </div>
           <div>
-            <label className="label">Bloom Tiempo (s)</label>
+            <label className="label">{t.bloomTime}</label>
             <input type="number" className="input" value={formData.technique.bloomTime} onChange={e => updateTechnique('bloomTime', Number(e.target.value))} />
           </div>
           <div>
-             <label className="label">Num. Vertidos</label>
+             <label className="label">{t.pours}</label>
              <input type="number" className="input" value={formData.technique.pours} onChange={e => updateTechnique('pours', Number(e.target.value))} />
           </div>
           <div>
-             <label className="label">Tiempo Total</label>
+             <label className="label">{t.totalTime}</label>
              <input type="text" className="input" placeholder="03:00" value={formData.config.totalTime} onChange={e => updateConfig('totalTime', e.target.value)} />
           </div>
         </div>
       </Section>
 
       {/* 3. Sensory */}
-      <Section title="Análisis Sensorial" icon={<Activity className="w-5 h-5" />}>
+      <Section title={t.sensory} icon={<Activity className="w-5 h-5" />}>
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SensorySlider label="Aroma" value={formData.result.aroma} onChange={v => updateResult('aroma', v)} />
-            <SensorySlider label="Acidez" value={formData.result.acidity} onChange={v => updateResult('acidity', v)} />
-            <SensorySlider label="Dulzura" value={formData.result.sweetness} onChange={v => updateResult('sweetness', v)} />
-            <SensorySlider label="Cuerpo" value={formData.result.body} onChange={v => updateResult('body', v)} />
-            <SensorySlider label="Amargor" value={formData.result.bitterness} onChange={v => updateResult('bitterness', v)} />
-            <SensorySlider label="Claridad" value={formData.result.clarity} onChange={v => updateResult('clarity', v)} />
-            <SensorySlider label="Balance" value={formData.result.balance} onChange={v => updateResult('balance', v)} />
-            <SensorySlider label="Retrogusto" value={formData.result.aftertaste} onChange={v => updateResult('aftertaste', v)} />
+            <SensorySlider label={t.aroma} value={formData.result.aroma} onChange={v => updateResult('aroma', v)} />
+            <SensorySlider label={t.acidity} value={formData.result.acidity} onChange={v => updateResult('acidity', v)} />
+            <SensorySlider label={t.sweetness} value={formData.result.sweetness} onChange={v => updateResult('sweetness', v)} />
+            <SensorySlider label={t.body} value={formData.result.body} onChange={v => updateResult('body', v)} />
+            <SensorySlider label={t.bitterness} value={formData.result.bitterness} onChange={v => updateResult('bitterness', v)} />
+            <SensorySlider label={t.clarity} value={formData.result.clarity} onChange={v => updateResult('clarity', v)} />
+            <SensorySlider label={t.balance} value={formData.result.balance} onChange={v => updateResult('balance', v)} />
+            <SensorySlider label={t.aftertaste} value={formData.result.aftertaste} onChange={v => updateResult('aftertaste', v)} />
           </div>
           <div>
-            <label className="label">Notas de Sabor</label>
-            <textarea className="input" rows={2} placeholder="Cítrico, Chocolate, Jazmín..." value={formData.result.flavorNotes} onChange={e => updateResult('flavorNotes', e.target.value)} />
+            <label className="label">{t.flavorNotes}</label>
+            <textarea className="input" rows={2} placeholder={t.flavorPlaceholder} value={formData.result.flavorNotes} onChange={e => updateResult('flavorNotes', e.target.value)} />
           </div>
           <div>
-            <label className="label">Sensación General</label>
-            <textarea className="input" rows={2} placeholder="Una taza placentera, similar a té..." value={formData.result.generalFeeling} onChange={e => updateResult('generalFeeling', e.target.value)} />
+            <label className="label">{t.generalFeeling}</label>
+            <textarea className="input" rows={2} placeholder={t.generalPlaceholder} value={formData.result.generalFeeling} onChange={e => updateResult('generalFeeling', e.target.value)} />
           </div>
           <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30">
-             <SensorySlider label="Puntaje General" value={formData.result.overallScore} onChange={v => updateResult('overallScore', v)} />
+             <SensorySlider label={t.overallScore} value={formData.result.overallScore} onChange={v => updateResult('overallScore', v)} />
           </div>
         </div>
       </Section>
 
       {/* 4. Learning & Diagnosis */}
-      <Section title="Ajustes y Aprendizaje" icon={<BrainCircuit className="w-5 h-5" />}>
+      <Section title={t.learning} icon={<BrainCircuit className="w-5 h-5" />}>
         <div className="space-y-5">
+          <DiagnosisCard result={formData.result} config={formData.config} lang={lang} />
+          
           <div>
-             <label className="label">Diagnóstico de Extracción</label>
+             <label className="label">{t.diagnosis}</label>
              <div className="flex gap-2">
-               {['Sub-extraído', 'Balanceado', 'Sobre-extraído'].map((d) => (
+               {['Sub-extraído', 'Balanceado', 'Sobre-extraído', 'Excelente'].map((d) => (
                  <button
                    key={d}
                    type="button"
@@ -165,20 +173,20 @@ const BrewForm: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
                      : 'bg-transparent text-stone-500 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800'
                    }`}
                  >
-                   {d}
+                   {LABELS.diagnosis[d as keyof typeof LABELS.diagnosis]?.[lang] || d}
                  </button>
                ))}
              </div>
           </div>
           
           <div>
-            <label className="label">Cambios desde la anterior</label>
-            <input type="text" className="input" placeholder="Ej. Molienda más gruesa (2.2 -> 2.4)" value={formData.learning.changesFromPrevious} onChange={e => updateLearning('changesFromPrevious', e.target.value)} />
+            <label className="label">{t.changesPrev}</label>
+            <input type="text" className="input" placeholder={t.changesPrevPlaceholder} value={formData.learning.changesFromPrevious} onChange={e => updateLearning('changesFromPrevious', e.target.value)} />
           </div>
 
           <div>
-            <label className="label text-amber-700 dark:text-amber-500">¿Qué cambiar en la próxima?</label>
-            <textarea className="input border-amber-200 dark:border-amber-900 focus:ring-amber-500 bg-amber-50/50 dark:bg-amber-900/10" rows={2} placeholder="Ej. Subir temperatura para resaltar acidez..." value={formData.learning.changesForNextTime} onChange={e => updateLearning('changesForNextTime', e.target.value)} />
+            <label className="label text-amber-700 dark:text-amber-500">{t.changesNext}</label>
+            <textarea className="input border-amber-200 dark:border-amber-900 focus:ring-amber-500 bg-amber-50/50 dark:bg-amber-900/10" rows={2} placeholder={t.changesNextPlaceholder} value={formData.learning.changesForNextTime} onChange={e => updateLearning('changesForNextTime', e.target.value)} />
           </div>
         </div>
       </Section>
